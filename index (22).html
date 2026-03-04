@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Line</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.158.0",
+            "three/": "https://esm.sh/three@0.158.0/",
+            "three/examples/jsm/loaders/GLTFLoader": "https://esm.sh/three@0.158.0/examples/jsm/loaders/GLTFLoader.js"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- Audio Elements -->
+    <audio id="main-menu-music" loop>
+        <source src="/main menu music.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="battle-music-1" loop>
+        <source src="/star 0-2 song 1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="battle-music-2" loop>
+        <source src="/star 0-2 song 2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="battle-music-3" loop>
+        <source src="/star 3-4 song 1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="battle-music-4" loop>
+        <source src="/star 3-4 song 2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="battle-music-5" loop>
+        <source src="/star 5 song.mp3" type="audio/mpeg">
+    </audio>
+    <!-- Sound Effects -->
+    <audio id="sfx-gunshot">
+        <source src="/gunshot.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sfx-hit-shield">
+        <source src="/hit shield.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-explosion">
+        <source src="/explosion.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-grenade-shot">
+        <source src="/grenade or rocket or stungrenade shot out.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-death">
+        <source src="/death.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sfx-defeat">
+        <source src="/defeat_french_horn.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <img src="/battle line thumbnail (1).png" alt="Battle Line" class="loading-image">
+            <div class="loading-text">Loading Battle Line...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="main-menu" class="menu-screen hidden">
+        <div class="menu-background">
+            <div class="floating-particle" style="--delay: 0s; --duration: 8s;"></div>
+            <div class="floating-particle" style="--delay: 2s; --duration: 6s;"></div>
+            <div class="floating-particle" style="--delay: 4s; --duration: 10s;"></div>
+            <div class="floating-particle" style="--delay: 1s; --duration: 7s;"></div>
+            <div class="floating-particle" style="--delay: 3s; --duration: 9s;"></div>
+            <div class="floating-particle" style="--delay: 5s; --duration: 5s;"></div>
+        </div>
+        <div class="menu-content">
+            <h1 class="epic-title">
+                <span class="letter" style="--delay: 0.1s;">B</span>
+                <span class="letter" style="--delay: 0.2s;">A</span>
+                <span class="letter" style="--delay: 0.3s;">T</span>
+                <span class="letter" style="--delay: 0.4s;">T</span>
+                <span class="letter" style="--delay: 0.5s;">L</span>
+                <span class="letter" style="--delay: 0.6s;">E</span>
+                <br>
+                <span class="letter" style="--delay: 0.8s;">L</span>
+                <span class="letter" style="--delay: 0.9s;">I</span>
+                <span class="letter" style="--delay: 1.0s;">N</span>
+                <span class="letter" style="--delay: 1.1s;">E</span>
+            </h1>
+            <p class="menu-subtitle epic-subtitle">Command your forces to victory in epic 3D battles!</p>
+            
+            <!-- Player Profile Display -->
+            <div class="profile-display">
+                <div class="profile-stat">
+                    <span class="profile-label">Level:</span>
+                    <span id="player-level">1</span>
+                </div>
+                <div class="profile-stat xp-container">
+                    <span class="profile-label">XP:</span>
+                    <span id="player-xp">0</span>/<span id="xp-needed">100</span>
+                    <div class="xp-bar-bg">
+                        <div id="xp-bar-fill" class="xp-bar-fill"></div>
+                    </div>
+                </div>
+                <div class="profile-stat">
+                    <span class="profile-label">💰 Coins:</span>
+                    <span id="player-coins">0</span>
+                </div>
+            </div>
+            
+            <div class="epic-buttons">
+                <button id="campaign-btn" class="epic-start-btn">
+                    <span>🗺️ CAMPAIGN MAP 🗺️</span>
+                    <div class="button-glow"></div>
+                </button>
+                <button id="shop-btn" class="epic-button">
+                    <span>🛒 UNIT SHOP</span>
+                </button>
+                <button id="crates-btn" class="epic-button">
+                    <span>🎁 CRATES</span>
+                </button>
+            </div>
+            
+            <!-- Secret lock for bonus rewards -->
+            <div class="secret-lock" id="secret-lock" title="Secret Code">🔒</div>
+            
+            <!-- Reset Progress Button -->
+            <button class="reset-button" id="reset-progress-btn" title="Reset All Progress">🗑️ Reset Progress</button>
+            
+            <div class="instructions">
+                <h3>🎯 Quick Guide:</h3>
+                <p class="guide-item" data-info="defend">• 🛡️ Defend - Units stay at base <span class="info-icon">ℹ️</span></p>
+                <p class="guide-item" data-info="attack">• ⚔️ Attack - Units advance forward <span class="info-icon">ℹ️</span></p>
+                <p class="guide-item" data-info="retreat">• 🏃 Retreat - Units fall back behind base <span class="info-icon">ℹ️</span></p>
+                <p class="guide-item" data-info="miners">• 💰 Miners generate resources <span class="info-icon">ℹ️</span></p>
+                <p>• 🎮 A/D - Move Camera | 1-9,0 - Buy Units</p>
+            </div>
+            
+            <!-- Guide Info Modal -->
+            <div id="guide-modal" class="guide-modal hidden">
+                <div class="guide-modal-content">
+                    <span class="guide-close">&times;</span>
+                    <h3 id="guide-modal-title"></h3>
+                    <p id="guide-modal-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Map Screen -->
+    <div id="campaign-map" class="menu-screen hidden">
+        <div class="menu-background">
+            <div class="floating-particle" style="--delay: 0s; --duration: 8s;"></div>
+            <div class="floating-particle" style="--delay: 2s; --duration: 6s;"></div>
+            <div class="floating-particle" style="--delay: 4s; --duration: 10s;"></div>
+            <div class="floating-particle" style="--delay: 1s; --duration: 7s;"></div>
+            <div class="floating-particle" style="--delay: 3s; --duration: 9s;"></div>
+            <div class="floating-particle" style="--delay: 5s; --duration: 5s;"></div>
+        </div>
+        <div class="campaign-content">
+            <h2 class="campaign-title">Campaign Levels</h2>
+            <div class="refresh-timer">
+                Next refresh in: <span id="refresh-countdown">5:00</span>
+            </div>
+            <div id="levels-grid" class="levels-grid">
+                <!-- Levels will be populated by JavaScript -->
+            </div>
+            <div class="campaign-buttons">
+                <button id="back-to-menu" class="epic-button">
+                    <span>🔙 BACK TO MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unit Shop Screen -->
+    <div id="unit-shop-screen" class="menu-screen hidden">
+        <div class="menu-background">
+            <div class="floating-particle" style="--delay: 0s; --duration: 8s;"></div>
+            <div class="floating-particle" style="--delay: 2s; --duration: 6s;"></div>
+            <div class="floating-particle" style="--delay: 4s; --duration: 10s;"></div>
+            <div class="floating-particle" style="--delay: 1s; --duration: 7s;"></div>
+            <div class="floating-particle" style="--delay: 3s; --duration: 9s;"></div>
+            <div class="floating-particle" style="--delay: 5s; --duration: 5s;"></div>
+        </div>
+        <div class="shop-content">
+            <h2 class="shop-title">Unit Shop & Upgrades</h2>
+            <div class="shop-currency">
+                <div>💰 Coins: <span id="shop-coins">0</span></div>
+                <div>⭐ XP: <span id="shop-xp">0</span></div>
+            </div>
+            <div id="shop-units-grid" class="shop-grid">
+                <!-- Shop units will be populated by JavaScript -->
+            </div>
+            <div class="shop-buttons">
+                <button id="shop-back-to-menu" class="epic-button">
+                    <span>🔙 BACK TO MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crates Screen -->
+    <div id="crates-screen" class="menu-screen hidden">
+        <div class="menu-background">
+            <div class="floating-particle" style="--delay: 0s; --duration: 8s;"></div>
+            <div class="floating-particle" style="--delay: 2s; --duration: 6s;"></div>
+            <div class="floating-particle" style="--delay: 4s; --duration: 10s;"></div>
+            <div class="floating-particle" style="--delay: 1s; --duration: 7s;"></div>
+            <div class="floating-particle" style="--delay: 3s; --duration: 9s;"></div>
+            <div class="floating-particle" style="--delay: 5s; --duration: 5s;"></div>
+        </div>
+        <div class="crates-content">
+            <h2 class="crates-title">Mystery Crates</h2>
+            <p class="crates-subtitle">Open crates for random rewards!</p>
+            <div class="crates-currency">
+                💰 Coins: <span id="crates-coins">0</span>
+            </div>
+            
+            <div class="crates-grid">
+                <div class="crate-card common-crate">
+                    <div class="crate-icon">📦</div>
+                    <h3>Common Crate</h3>
+                    <p class="crate-price">50 Coins</p>
+                    <p class="crate-info">3 Items<br>Basic rewards</p>
+                    <button id="open-common-crate" class="crate-btn">Open</button>
+                </div>
+                
+                <div class="crate-card uncommon-crate">
+                    <div class="crate-icon">📦</div>
+                    <h3>Uncommon Crate</h3>
+                    <p class="crate-price">150 Coins</p>
+                    <p class="crate-info">3 Items<br>Better rewards</p>
+                    <button id="open-uncommon-crate" class="crate-btn">Open</button>
+                </div>
+                
+                <div class="crate-card rare-crate">
+                    <div class="crate-icon">🎁</div>
+                    <h3>Rare Crate</h3>
+                    <p class="crate-price">400 Coins</p>
+                    <p class="crate-info">3 Items<br>Great rewards</p>
+                    <button id="open-rare-crate" class="crate-btn">Open</button>
+                </div>
+                
+                <div class="crate-card epic-crate">
+                    <div class="crate-icon">💎</div>
+                    <h3>Epic Crate</h3>
+                    <p class="crate-price">1000 Coins</p>
+                    <p class="crate-info">3 Items<br>Epic rewards<br>1.2% unit chance</p>
+                    <button id="open-epic-crate" class="crate-btn">Open</button>
+                </div>
+                
+                <div class="crate-card elite-crate">
+                    <div class="crate-icon">👑</div>
+                    <h3>Elite Crate</h3>
+                    <p class="crate-price">2500 Coins</p>
+                    <p class="crate-info">4 Items<br>Best rewards<br>6% unit chance</p>
+                    <button id="open-elite-crate" class="crate-btn">Open</button>
+                </div>
+            </div>
+            
+            <div class="crates-buttons">
+                <button id="crates-back-to-menu" class="epic-button">
+                    <span>🔙 BACK TO MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tipping Screen -->
+    <div id="tip-screen" class="menu-screen hidden">
+        <div class="menu-background">
+            <div class="floating-particle" style="--delay: 0s; --duration: 8s;"></div>
+            <div class="floating-particle" style="--delay: 2s; --duration: 6s;"></div>
+            <div class="floating-particle" style="--delay: 4s; --duration: 10s;"></div>
+            <div class="floating-particle" style="--delay: 1s; --duration: 7s;"></div>
+            <div class="floating-particle" style="--delay: 3s; --duration: 9s;"></div>
+            <div class="floating-particle" style="--delay: 5s; --duration: 5s;"></div>
+        </div>
+        <div class="tip-content">
+            <h2 class="tip-title">Support the Creator</h2>
+            <p class="tip-subtitle">Convert your Websim credits to campaign coins!</p>
+            
+            <div class="tip-exchange">
+                <div class="exchange-rate">
+                    <strong>Exchange Rate: 3 Websim Credits = 1 Campaign Coin</strong>
+                </div>
+                
+                <div class="tip-input">
+                    <label for="tip-amount">Websim Credits to Convert:</label>
+                    <input type="number" id="tip-amount" min="3" step="3" placeholder="Enter credits (minimum 3)">
+                </div>
+                
+                <div class="conversion-preview">
+                    You will receive: <span id="coins-preview">0</span> Campaign Coins
+                </div>
+                
+                <div class="bonus-notice">
+                    💎 Bonus: Tip 1500+ credits and get a FREE Riot unit! (if unlocked)
+                </div>
+            </div>
+            
+            <div class="tip-buttons">
+                <button id="convert-credits" class="epic-start-btn">
+                    <span>💰 CONVERT CREDITS</span>
+                </button>
+                <button id="tip-back-to-menu" class="epic-button">
+                    <span>🔙 BACK TO MENU</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unit Selection Screen -->
+    <div id="unit-selection" class="menu-screen hidden">
+        <div class="menu-background">
+            <div class="floating-particle" style="--delay: 0s; --duration: 8s;"></div>
+            <div class="floating-particle" style="--delay: 2s; --duration: 6s;"></div>
+            <div class="floating-particle" style="--delay: 4s; --duration: 10s;"></div>
+            <div class="floating-particle" style="--delay: 1s; --duration: 7s;"></div>
+            <div class="floating-particle" style="--delay: 3s; --duration: 9s;"></div>
+            <div class="floating-particle" style="--delay: 5s; --duration: 5s;"></div>
+        </div>
+        <div class="selection-content">
+            <h2 class="selection-title">Select Your Army</h2>
+            <p class="selection-subtitle">Choose up to 6 units for battle</p>
+            <div id="available-units" class="selection-grid">
+                <!-- Available units will be populated by JavaScript -->
+            </div>
+            <div id="selected-army" class="selected-army">
+                <h3>Your Army:</h3>
+                <div id="army-display"></div>
+            </div>
+            <div class="selection-buttons">
+                <button id="start-battle" class="epic-start-btn disabled">
+                    <span>⚔️ START BATTLE ⚔️</span>
+                </button>
+                <button id="selection-back" class="epic-button">
+                    <span>🔙 BACK</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui">
+            <div id="health-bars">
+                <div class="base-health">
+                    <label>Player Base</label>
+                    <div class="health-bar">
+                        <div id="player-health" class="health-fill"></div>
+                    </div>
+                </div>
+                <div class="base-health">
+                    <label>Enemy Base</label>
+                    <div class="health-bar">
+                        <div id="enemy-health" class="health-fill"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="unit-stances">
+                <button id="defend-stance" class="stance-btn active">🛡️ Defend</button>
+                <button id="attack-stance" class="stance-btn">⚔️ Attack</button>
+                <button id="retreat-stance" class="stance-btn">🏃 Retreat</button>
+            </div>
+            <div id="controls">
+                <p>A/D - Move Camera | 1-9,0 - Buy Units</p>
+                <p>Units: <span id="unit-count">0</span> | Score: <span id="score">0</span></p>
+            </div>
+        </div>
+        <div id="unit-shop">
+            <div id="resources">Resources: <span id="resource-count">50</span></div>
+            <div class="unit-grid" id="unit-grid">
+                <!-- Unit buttons will be populated by JavaScript -->
+            </div>
+        </div>
+        <div id="game-over" class="hidden">
+            <h1 id="result-text"></h1>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+    
+    <script type="module" src="unit.js"></script>
+    <script type="module" src="army.js"></script>
+    <script type="module" src="game.js"></script>
+    <script type="module" src="campaign.js"></script>
+
+</body>
+</html>
